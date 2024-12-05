@@ -1,5 +1,4 @@
 use std::{
-    collections::BinaryHeap,
     fs::File,
     io::{self, BufRead, BufReader},
 };
@@ -8,8 +7,8 @@ fn main() -> io::Result<()> {
     let input_file = File::open("input.txt")?;
     let reader = BufReader::new(input_file);
 
-    let mut list1 = BinaryHeap::new();
-    let mut list2 = BinaryHeap::new();
+    let mut list1 = Vec::new();
+    let mut list2 = Vec::new();
 
     for line in reader.lines() {
         let list_items = line?
@@ -21,9 +20,12 @@ fn main() -> io::Result<()> {
         list2.push(list_items[1]);
     }
 
+    list1.sort();
+    list2.sort();
+
     let mut total_distance = 0;
-    while let (Some(l1n), Some(l2n)) = (list1.pop(), list2.pop()) {
-        println!("{}:{}", l1n, l2n);
+    for (&l1n, &l2n) in list1.iter().zip(list2.iter()) {
+        // println!("{}:{}", l1n, l2n);
         let diff = u32::abs_diff(l1n, l2n);
         total_distance += diff;
     }
