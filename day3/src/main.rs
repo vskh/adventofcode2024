@@ -1,4 +1,7 @@
-use std::{fs::File, io::{BufReader, Read}};
+use std::{
+    fs::File,
+    io::{BufReader, Read},
+};
 
 fn try_parse_and_mul(mem: &str) -> Option<u32> {
     let mut p = mem;
@@ -52,7 +55,7 @@ fn try_parse_and_mul(mem: &str) -> Option<u32> {
 
     if !p.starts_with(")") {
         // println!("!)");
-        return None
+        return None;
     }
 
     Some(arg1 * arg2)
@@ -63,16 +66,33 @@ fn main() {
     let mut reader = BufReader::new(f);
 
     let mut mem = String::new();
-    reader.read_to_string(&mut mem).expect("Failed to read the input file.");
+    reader
+        .read_to_string(&mut mem)
+        .expect("Failed to read the input file.");
 
-    let mut sum_products = 0;
+    let mut cond_sum_products = 0;
+    let mut uncond_sum_products = 0;
+    let mut enable_multiplication = true;
     for (i, ch) in mem.char_indices() {
+        if ch == 'd' {
+            if mem[i..].starts_with("do()") {
+                enable_multiplication = true;
+            } else if mem[i..].starts_with("don't()") {
+                enable_multiplication = false
+            }
+        }
+
         if ch == 'm' {
-            sum_products += try_parse_and_mul(&mem[i..]).unwrap_or(0);
+            let add = try_parse_and_mul(&mem[i..]).unwrap_or(0);
+            if enable_multiplication {
+                cond_sum_products += add
+            }
+            uncond_sum_products += add;
         }
     }
 
-    println!("Sum of products: {}", sum_products);
+    println!("Sum of enabled products: {}", cond_sum_products);
+    println!("Sum of all products: {}", uncond_sum_products);
 }
 
 #[cfg(test)]
