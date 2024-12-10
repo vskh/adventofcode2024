@@ -111,11 +111,7 @@ fn main() {
             let mut update = update_result
                 .unwrap_or_else(|e| panic!("Failed to parse update line '{}': {}", update_line, e));
 
-            assert!(
-                update.len() % 2 == 1,
-                "Update {:?} has even number of pages, can't determine the middle page number.",
-                update
-            );
+            assert_eq!(update.len() % 2, 1, "Update {:?} has even number of pages, can't determine the middle page number.", update);
 
             if oder_update(&rules, &mut update) {
                 incorrectly_ordered_update_middle_pages_sum += update[update.len() / 2];
