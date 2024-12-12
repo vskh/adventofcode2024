@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{BufRead, BufReader, Read};
+use std::io::{BufReader, Read};
 
 fn read_map_from_str(s: &str) -> (Vec<Vec<char>>, (isize, isize)) {
     let mut map: Vec<Vec<char>> = Vec::new();
@@ -128,4 +128,46 @@ fn main() {
     let positions_count = run_guard_till_exit(&mut map, (r as usize, c as usize));
 
     println!("Positions count: {}", positions_count);
+}
+
+
+#[cfg(test)]
+mod test {
+    use crate::{read_map_from_str, run_guard_till_exit};
+
+    #[test]
+    fn read_map_from_str_works() {
+        let (map, (r, c)) = read_map_from_str("....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...");
+
+        assert_eq!(map.len(), 10);
+        assert_eq!(map[0].len(), 10);
+        assert_eq!((r, c), (6, 4));
+    }
+    
+    #[test]
+    fn run_guard_till_exit_works() {
+        let (mut map, (r, c)) = read_map_from_str("....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...");
+        
+        let positions_count = run_guard_till_exit(&mut map, (r as usize, c as usize));
+        
+        assert_eq!(positions_count, 41);
+    }
 }
