@@ -1,5 +1,25 @@
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Read};
+
+fn read_map_from_str(s: &str) -> (Vec<Vec<char>>, (isize, isize)) {
+    let mut map: Vec<Vec<char>> = Vec::new();
+    let mut c = -1;
+    let mut r = -1;
+    for map_line in s.split_terminator('\n') {
+        if map_line.contains(['^', '>', 'v', '<']) {
+            r = map.len() as isize;
+            c = map_line.find(['^', '>', 'v', '<']).unwrap() as isize;
+        }
+
+        map.push(map_line.chars().collect());
+    }
+
+    (map, (r, c))
+}
+
+fn print_map(map: &[Vec<char>]) {
+    map.iter().for_each(|row| { println!("{}", row.iter().collect::<String>()); });
+}
 
 fn next_step(map: &[Vec<char>], location: (usize, usize)) -> (isize, isize) {
     let (r, c) = location;
@@ -62,53 +82,50 @@ fn can_go(map: &[Vec<char>], location: (usize, usize)) -> bool {
     map[r][c] == '.' || map[r][c] == 'X'
 }
 
-fn print_map(map: &[Vec<char>]) {
-    map.iter().for_each(|row| { println!("{}", row.iter().collect::<String>()); });
+fn run_guard_till_exit(map: &mut [Vec<char>], location: (usize, usize)) -> usize {
+    let mut r: isize = location.0 as isize;
+    let mut c: isize = location.1 as isize;
+
+    let mut positions_count = 1;
+    loop {
+        let (tr, tc) = next_step(map, (r as usize, c as usize));
+
+        if !within_lab(map, (tr, tc)) {
+            break;
+        }
+
+        if !can_go(map, (tr as usize, tc as usize)) {
+            turn_guard_right(map, (r as usize, c as usize));
+            continue;
+        }
+
+        if step_guard(map, (r as usize, c as usize), (tr as usize, tc as usize)) {
+            positions_count += 1;
+        }
+        (r, c) = (tr, tc);
+
+        // print_map(&map);
+    }
+
+    positions_count
 }
 
 fn main() {
     let f = File::open("input.txt").expect("Could not open file.");
-    let reader = BufReader::new(f);
+    let mut reader = BufReader::new(f);
 
-    let mut map: Vec<Vec<char>> = Vec::new();
-    let mut c = -1;
-    let mut r = -1;
-    for line in reader.lines() {
-        let map_line = line.expect("Could not read input line.");
-
-        if map_line.contains(['^', '>', 'v', '<']) {
-            r = map.len() as isize;
-            c = map_line.find(['^', '>', 'v', '<']).unwrap() as isize;
-        }
-
-        map.push(map_line.chars().collect());
-    }
+    let mut map_string = String::new();
+    reader.read_to_string(&mut map_string).expect("Failed to read the input file.");
+    let (mut map, (r, c)) = read_map_from_str(map_string.as_str());
 
     println!(
         "Guard is starting position ({}, {}), direction is {}",
         r, c, map[r as usize][c as usize]
     );
 
-    let mut positions_count = 1;
-    loop {
-        let (tr, tc) = next_step(&map, (r as usize, c as usize));
+    assert!(r >= 0 && c >= 0, "Guard is expected to be within the lab!");
 
-        if !within_lab(&map, (tr, tc)) {
-            break;
-        }
-
-        if !can_go(&map, (tr as usize, tc as usize)) {
-            turn_guard_right(&mut map, (r as usize, c as usize));
-            continue;
-        }
-
-        if step_guard(&mut map, (r as usize, c as usize), (tr as usize, tc as usize)) {
-            positions_count += 1;
-        }
-        (r, c) = (tr, tc);
-        
-        // print_map(&map);
-    }
+    let positions_count = run_guard_till_exit(&mut map, (r as usize, c as usize));
 
     println!("Positions count: {}", positions_count);
 }
