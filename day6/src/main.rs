@@ -104,7 +104,7 @@ fn run_guard_till_exit(map: &mut [Vec<char>], location: (usize, usize)) -> usize
         }
         (r, c) = (tr, tc);
 
-        // print_map(&map);
+        // print_map(map);
     }
 
     positions_count
@@ -152,7 +152,7 @@ mod test {
         assert_eq!(map[0].len(), 10);
         assert_eq!((r, c), (6, 4));
     }
-    
+
     #[test]
     fn run_guard_till_exit_works() {
         let (mut map, (r, c)) = read_map_from_str("....#.....
@@ -165,9 +165,9 @@ mod test {
 ........#.
 #.........
 ......#...");
-        
+
         let positions_count = run_guard_till_exit(&mut map, (r as usize, c as usize));
-        
+
         assert_eq!(positions_count, 41);
     }
 }
