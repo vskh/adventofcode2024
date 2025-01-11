@@ -18,7 +18,9 @@ fn read_map_from_str(s: &str) -> (Vec<Vec<char>>, (isize, isize)) {
 }
 
 fn print_map(map: &[Vec<char>]) {
-    map.iter().for_each(|row| { println!("{}", row.iter().collect::<String>()); });
+    map.iter().for_each(|row| {
+        println!("{}", row.iter().collect::<String>());
+    });
 }
 
 fn next_step(map: &[Vec<char>], location: (usize, usize)) -> (isize, isize) {
@@ -51,7 +53,10 @@ fn step_guard(map: &mut [Vec<char>], from: (usize, usize), to: (usize, usize)) -
 
     println!(
         "Guard moved {} to ({}, {}) [{}]",
-        map[tr][tc], tr, tc, if unvisited { "new" } else { "has been before" }
+        map[tr][tc],
+        tr,
+        tc,
+        if unvisited { "new" } else { "has been before" }
     );
 
     unvisited
@@ -79,7 +84,7 @@ fn within_lab(map: &[Vec<char>], location: (isize, isize)) -> bool {
 fn can_go(map: &[Vec<char>], location: (usize, usize)) -> bool {
     let (r, c) = location;
 
-    map[r][c] == '.' || map[r][c] == 'X'
+    map[r][c] != '#'
 }
 
 fn run_guard_till_exit(map: &mut [Vec<char>], location: (usize, usize)) -> usize {
@@ -110,12 +115,63 @@ fn run_guard_till_exit(map: &mut [Vec<char>], location: (usize, usize)) -> usize
     positions_count
 }
 
+fn is_loopable_perimeter(map: &mut [Vec<char>], location: (usize, usize)) -> bool {
+    let (sr, sc) = location;
+
+    let mut turns = 0;
+    let mut direction = map[sr][sc];
+
+    let mut r = sr;
+    let mut c = sc;
+    while turns <= 4 {
+        direction = match direction {
+            '^' => '>',
+            '>' => 'v',
+            'v' => '<',
+            '<' => '^',
+            _ => panic!("Wrong direction: {}", direction),
+        };
+        turns += 1;
+
+        let (dr, dc) = match direction {
+            '^' => (-1_isize, 0),
+            '>' => (0, 1),
+            'v' => (1, 0),
+            '<' => (0, -1_isize),
+            _ => panic!("Wrong direction: {}", direction),
+        };
+
+        loop {
+            let (nr, nc) = (r as isize + dr, c as isize + dc);
+
+            if !within_lab(map, (nr, nc)) {
+                return false;
+            }
+
+            if !can_go(map, (nr as usize, nc as usize)) {
+                break;
+            }
+
+            r = nr as usize;
+            c = nc as usize;
+        }
+
+        if r == sr && c == sc {
+            return true;
+        }
+    }
+
+    false
+}
+
 fn main() {
     let f = File::open("input.txt").expect("Could not open file.");
     let mut reader = BufReader::new(f);
 
     let mut map_string = String::new();
-    reader.read_to_string(&mut map_string).expect("Failed to read the input file.");
+    reader
+        .read_to_string(&mut map_string)
+        .expect("Failed to read the input file.");
     let (mut map, (r, c)) = read_map_from_str(map_string.as_str());
 
     println!(
@@ -130,23 +186,24 @@ fn main() {
     println!("Positions count: {}", positions_count);
 }
 
-
 #[cfg(test)]
 mod test {
     use crate::{read_map_from_str, run_guard_till_exit};
 
     #[test]
     fn read_map_from_str_works() {
-        let (map, (r, c)) = read_map_from_str("....#.....
-.........#
-..........
-..#.......
-.......#..
-..........
-.#..^.....
-........#.
-#.........
-......#...");
+        let (map, (r, c)) = read_map_from_str(
+            "....#.....\n\
+            .........#\n\
+            ..........\n\
+            ..#.......\n\
+            .......#..\n\
+            ..........\n\
+            .#..^.....\n\
+            ........#.\n\
+            #.........\n\
+            ......#...",
+        );
 
         assert_eq!(map.len(), 10);
         assert_eq!(map[0].len(), 10);
@@ -155,19 +212,82 @@ mod test {
 
     #[test]
     fn run_guard_till_exit_works() {
-        let (mut map, (r, c)) = read_map_from_str("....#.....
-.........#
-..........
-..#.......
-.......#..
-..........
-.#..^.....
-........#.
-#.........
-......#...");
+        let (mut map, (r, c)) = read_map_from_str(
+            "....#.....\n\
+            .........#\n\
+            ..........\n\
+            ..#.......\n\
+            .......#..\n\
+            ..........\n\
+            .#..^.....\n\
+            ........#.\n\
+            #.........\n\
+            ......#...",
+        );
 
         let positions_count = run_guard_till_exit(&mut map, (r as usize, c as usize));
 
         assert_eq!(positions_count, 41);
+    }
+
+    mod is_loopable_perimeter {
+        use crate::{is_loopable_perimeter, read_map_from_str};
+
+        #[test]
+        fn if_hit_lab_wall_then_false() {
+            let (mut map, (r, c)) = read_map_from_str(
+                ".....\n\
+                #<....",
+            );
+
+            assert!(!is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+        }
+
+        #[test]
+        fn if_ran_out_of_turns_then_false() {
+            let (mut map, (r, c)) = read_map_from_str(
+                ".#...\n\
+                 ...#.\n\
+                 #<...\n\
+                 #....\n\
+                 ..#...",
+            );
+
+            assert!(!is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+        }
+
+        #[test]
+        fn if_loop_then_true() {
+            let (mut map, (r, c)) = read_map_from_str(
+                ".#...\n\
+                 ...#.\n\
+                 #<...\n\
+                 ..#..",
+            );
+
+            assert!(is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+        }
+
+        #[test]
+        fn if_inplace_turns_then_true() {
+            let (mut map, (r, c)) = read_map_from_str(
+                ".#...\n\
+                 #<#..\n\
+                 .#...",
+            );
+
+            assert!(is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+
+        }
+        #[test]
+        fn if_back_and_force_then_true() {
+            let (mut map, (r, c)) = read_map_from_str(
+                ".#...\n\
+                 #<..#\n\
+                 ...#.",
+            );
+
+            assert!(is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+        }
     }
 }
