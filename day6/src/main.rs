@@ -250,7 +250,7 @@ mod test {
 
         #[test]
         fn if_hit_lab_wall_then_false() {
-            let (mut map, (r, c)) = read_map_from_str(
+            let (map, (r, c)) = read_map_from_str(
                 ".....\n\
                 #<....",
             );
@@ -260,7 +260,7 @@ mod test {
 
         #[test]
         fn if_ran_out_of_turns_then_false() {
-            let (mut map, (r, c)) = read_map_from_str(
+            let (map, (r, c)) = read_map_from_str(
                 ".#...\n\
                  ...#.\n\
                  #<...\n\
@@ -273,7 +273,7 @@ mod test {
 
         #[test]
         fn if_loop_then_true() {
-            let (mut map, (r, c)) = read_map_from_str(
+            let (map, (r, c)) = read_map_from_str(
                 ".#...\n\
                  ...#.\n\
                  #<...\n\
@@ -285,7 +285,7 @@ mod test {
 
         #[test]
         fn if_inplace_turns_then_true() {
-            let (mut map, (r, c)) = read_map_from_str(
+            let (map, (r, c)) = read_map_from_str(
                 ".#...\n\
                  #<#..\n\
                  .#...",
@@ -296,7 +296,7 @@ mod test {
         }
         #[test]
         fn if_back_and_force_then_true() {
-            let (mut map, (r, c)) = read_map_from_str(
+            let (map, (r, c)) = read_map_from_str(
                 ".#...\n\
                  #<..#\n\
                  ...#.",
