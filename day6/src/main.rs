@@ -166,7 +166,7 @@ fn is_loopable_perimeter(map: &[Vec<char>], location: (usize, usize)) -> bool {
 
             r = nr as usize;
             c = nc as usize;
-            
+
             if r == sr && c == sc {
                 return true;
             }
@@ -255,7 +255,7 @@ mod test {
                 #<....",
             );
 
-            assert!(!is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+            assert!(!is_loopable_perimeter(&map, (r as usize, c as usize)));
         }
 
         #[test]
@@ -268,7 +268,7 @@ mod test {
                  ..#...",
             );
 
-            assert!(!is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+            assert!(!is_loopable_perimeter(&map, (r as usize, c as usize)));
         }
 
         #[test]
@@ -280,7 +280,7 @@ mod test {
                  ..#..",
             );
 
-            assert!(is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+            assert!(is_loopable_perimeter(&map, (r as usize, c as usize)));
         }
 
         #[test]
@@ -291,7 +291,7 @@ mod test {
                  .#...",
             );
 
-            assert!(is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+            assert!(is_loopable_perimeter(&map, (r as usize, c as usize)));
 
         }
         #[test]
@@ -302,7 +302,7 @@ mod test {
                  ...#.",
             );
 
-            assert!(is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+            assert!(is_loopable_perimeter(&map, (r as usize, c as usize)));
         }
 
         #[test]
