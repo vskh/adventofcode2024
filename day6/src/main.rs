@@ -17,6 +17,7 @@ fn read_map_from_str(s: &str) -> (Vec<Vec<char>>, (isize, isize)) {
     (map, (r, c))
 }
 
+#[allow(unused)]
 fn print_map(map: &[Vec<char>]) {
     map.iter().for_each(|row| {
         println!("{}", row.iter().collect::<String>());
@@ -87,39 +88,50 @@ fn can_go(map: &[Vec<char>], location: (usize, usize)) -> bool {
     map[r][c] != '#'
 }
 
-fn run_guard_till_exit(map: &mut [Vec<char>], location: (usize, usize)) -> usize {
+fn run_guard_till_exit(map: &mut [Vec<char>], location: (usize, usize)) -> (usize, usize) {
     let mut r: isize = location.0 as isize;
     let mut c: isize = location.1 as isize;
 
     let mut positions_count = 1;
+    let mut loops_count = 0;
     loop {
-        let (tr, tc) = next_step(map, (r as usize, c as usize));
+        let (nr, nc) = next_step(map, (r as usize, c as usize));
 
-        if !within_lab(map, (tr, tc)) {
+        if !within_lab(map, (nr, nc)) {
             break;
         }
 
-        if !can_go(map, (tr as usize, tc as usize)) {
+        loops_count += is_loopable_perimeter(map, (r as usize, c as usize)) as usize;
+
+        if !can_go(map, (nr as usize, nc as usize)) {
             turn_guard_right(map, (r as usize, c as usize));
             continue;
         }
 
-        if step_guard(map, (r as usize, c as usize), (tr as usize, tc as usize)) {
+        if step_guard(map, (r as usize, c as usize), (nr as usize, nc as usize)) {
             positions_count += 1;
         }
-        (r, c) = (tr, tc);
+        (r, c) = (nr, nc);
 
         // print_map(map);
     }
 
-    positions_count
+    (positions_count, loops_count)
 }
 
-fn is_loopable_perimeter(map: &mut [Vec<char>], location: (usize, usize)) -> bool {
+fn is_loopable_perimeter(map: &[Vec<char>], location: (usize, usize)) -> bool {
     let (sr, sc) = location;
 
     let mut turns = 0;
-    let mut direction = map[sr][sc];
+
+    // presume that current direction is caused by turn to avoid obstacle
+    let mut direction = match map[sr][sc] {
+        '^' => '<',
+        '>' => '^',
+        'v' => '>',
+        '<' => 'v',
+        _ => panic!("Wrong direction: {}", map[sr][sc]),
+    };
 
     let mut r = sr;
     let mut c = sc;
@@ -154,11 +166,12 @@ fn is_loopable_perimeter(map: &mut [Vec<char>], location: (usize, usize)) -> boo
 
             r = nr as usize;
             c = nc as usize;
+            
+            if r == sr && c == sc {
+                return true;
+            }
         }
 
-        if r == sr && c == sc {
-            return true;
-        }
     }
 
     false
@@ -181,9 +194,10 @@ fn main() {
 
     assert!(r >= 0 && c >= 0, "Guard is expected to be within the lab!");
 
-    let positions_count = run_guard_till_exit(&mut map, (r as usize, c as usize));
+    let (positions_count, loops_count) = run_guard_till_exit(&mut map, (r as usize, c as usize));
 
     println!("Positions count: {}", positions_count);
+    println!("Possible loops count: {}", loops_count);
 }
 
 #[cfg(test)]
@@ -225,9 +239,10 @@ mod test {
             ......#...",
         );
 
-        let positions_count = run_guard_till_exit(&mut map, (r as usize, c as usize));
+        let (positions_count, loops_count) = run_guard_till_exit(&mut map, (r as usize, c as usize));
 
         assert_eq!(positions_count, 41);
+        assert_eq!(loops_count, 6);
     }
 
     mod is_loopable_perimeter {
@@ -288,6 +303,24 @@ mod test {
             );
 
             assert!(is_loopable_perimeter(&mut map, (r as usize, c as usize)));
+        }
+
+        #[test]
+        fn sample_map_true() {
+            let (map, (r, c)) = read_map_from_str(
+                "....#.....\n\
+                .........#\n\
+                ..........\n\
+                ..#.......\n\
+                .......#..\n\
+                ..........\n\
+                .#..^.....\n\
+                ........#.\n\
+                #.........\n\
+                ......#...",
+            );
+
+            assert!(is_loopable_perimeter(&map, (r as usize, c as usize)));
         }
     }
 }
