@@ -101,7 +101,11 @@ fn run_guard_till_exit(map: &mut [Vec<char>], location: (usize, usize)) -> (usiz
             break;
         }
 
-        loops_count += is_loopable_perimeter(map, (r as usize, c as usize)) as usize;
+        let is_loopable = is_loopable_perimeter(map, (r as usize, c as usize));
+        if is_loopable {
+            println!("Found loopable perimeter at ({}, {}).", r, c);
+            loops_count += 1;
+        }
 
         if !can_go(map, (nr as usize, nc as usize)) {
             turn_guard_right(map, (r as usize, c as usize));
@@ -174,7 +178,7 @@ fn is_loopable_perimeter(map: &[Vec<char>], location: (usize, usize)) -> bool {
 
     }
 
-    false
+    r == sr && c == sc
 }
 
 fn main() {
@@ -306,18 +310,72 @@ mod test {
         }
 
         #[test]
-        fn sample_map_true() {
+        fn sample_6_4_map_true() {
             let (map, (r, c)) = read_map_from_str(
                 "....#.....\n\
-                .........#\n\
-                ..........\n\
-                ..#.......\n\
-                .......#..\n\
-                ..........\n\
-                .#..^.....\n\
-                ........#.\n\
-                #.........\n\
-                ......#...",
+                 .........#\n\
+                 ..........\n\
+                 ..#.......\n\
+                 .......#..\n\
+                 ..........\n\
+                 .#..^.....\n\
+                 ........#.\n\
+                 #.........\n\
+                 ......#...",
+            );
+
+            assert!(is_loopable_perimeter(&map, (r as usize, c as usize)));
+        }
+
+        #[test]
+        fn sample_6_6_map_true() {
+            let (map, (r, c)) = read_map_from_str(
+                "....#.....\n\
+                 .........#\n\
+                 ..........\n\
+                 ..#.......\n\
+                 .......#..\n\
+                 ..........\n\
+                 .#....<...\n\
+                 ........#.\n\
+                 #.........\n\
+                 ......#...",
+            );
+
+            assert!(is_loopable_perimeter(&map, (r as usize, c as usize)));
+        }
+
+        #[test]
+        fn sample_7_6_map_true() {
+            let (map, (r, c)) = read_map_from_str(
+                "....#.....\n\
+                 .........#\n\
+                 ..........\n\
+                 ..#.......\n\
+                 .......#..\n\
+                 ..........\n\
+                 .#........\n\
+                 ......v.#.\n\
+                 #.........\n\
+                 ......#...",
+            );
+
+            assert!(is_loopable_perimeter(&map, (r as usize, c as usize)));
+        }
+
+        #[test]
+        fn sample_8_2_map_true() {
+            let (map, (r, c)) = read_map_from_str(
+                "....#.....\n\
+                 .........#\n\
+                 ..........\n\
+                 ..#.......\n\
+                 .......#..\n\
+                 ..........\n\
+                 .#........\n\
+                 ........#.\n\
+                 #.<.......\n\
+                 ......#...",
             );
 
             assert!(is_loopable_perimeter(&map, (r as usize, c as usize)));
